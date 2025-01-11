@@ -10,16 +10,24 @@ class GpsController extends Controller
 {
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'latitude' => 'required|numeric',
-            'longitude' => 'required|numeric'
-        ]);
+        try {
+            $validated = $request->validate([
+                'latitude' => 'required|numeric',
+                'longitude' => 'required|numeric'
+            ]);
 
-        $location = GpsLocation::create($validated);
+            $location = GpsLocation::create($validated);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Location saved successfully'
-        ]);
+            return response()->json([
+                'success' => true,
+                'message' => 'Location saved successfully',
+                'data' => $location
+            ], 201);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 500);
+        }
     }
 }
