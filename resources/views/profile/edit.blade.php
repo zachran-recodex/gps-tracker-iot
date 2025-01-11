@@ -1,5 +1,5 @@
 <x-app-layout>
-    <div class="py-6">
+    <div class="pt-16 pb-16 bg-gray-100 min-h-screen overflow-x-hidden">
         <div class="max-w-sm mx-auto px-2 space-y-6">
             <div class="p-4 bg-white shadow rounded-lg">
                 <div class="max-w-xl">

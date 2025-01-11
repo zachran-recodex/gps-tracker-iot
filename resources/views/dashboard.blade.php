@@ -1,8 +1,8 @@
 <x-app-layout>
-    <div class="py-6">
+    <div class="pt-16 pb-16 bg-gray-100 min-h-screen overflow-x-hidden">
         <div class="max-w-sm mx-auto px-2">
             <!-- Location Map -->
-            <div class="bg-white shadow-sm rounded-lg mb-4">
+            <div class="bg-white shadow-sm rounded-lg mb-4 relative">
                 <div class="p-3">
                     <h3 class="text-base font-medium text-gray-900 mb-2">Current Location</h3>
                     <div id="map" class="h-64 w-full rounded"></div>
@@ -10,7 +10,7 @@
             </div>
 
             <!-- Recent Locations -->
-            <div class="bg-white shadow-sm rounded-lg">
+            <div class="bg-white shadow-sm rounded-lg relative">
                 <div class="p-3">
                     <h3 class="text-base font-medium text-gray-900 mb-2">Recent Locations</h3>
                     <div class="overflow-x-auto">
