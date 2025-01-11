@@ -17,10 +17,16 @@
 </head>
 
 <body class="font-sans antialiased">
-    <div class="min-h-screen bg-gray-100 pb-16">
+    <div class="min-h-screen bg-gray-100">
+        <!-- Fixed Header with Logo -->
+        <div class="fixed top-0 left-0 right-0 bg-white shadow-sm z-10">
+            <div class="max-w-sm mx-auto px-4 py-3 flex justify-center items-center">
+                <span class="text-xl font-bold text-gray-800">GPS Tracker</span>
+            </div>
+        </div>
 
-        <!-- Page Content -->
-        <main>
+        <!-- Page Content with padding top for fixed header -->
+        <main class="pt-16 pb-16">
             {{ $slot }}
         </main>
 

@@ -1,5 +1,5 @@
 <x-app-layout>
-    <div class="py-12">
+    <div class="py-6">
         <div class="max-w-sm mx-auto px-2">
             <!-- Location Map -->
             <div class="bg-white shadow-sm rounded-lg mb-4">
