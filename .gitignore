@@ -21,4 +21,4 @@ yarn-error.log
 /.vscode
 /.zed
 vendor.zip
-DS_Store
+.DS_Store
