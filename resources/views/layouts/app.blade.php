@@ -48,7 +48,7 @@
     <!-- Fixed Header -->
     <div class="fixed-header bg-white shadow-sm">
         <div class="max-w-sm mx-auto px-4 py-3 flex justify-center items-center">
-            <span class="text-xl font-bold text-gray-800">GPS Tracker</span>
+            <span class="text-xl font-bold text-gray-800">SmarTracker</span>
         </div>
     </div>
 
