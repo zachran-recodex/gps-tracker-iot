@@ -8,6 +8,7 @@ class GpsLocation extends Model
 {
     protected $fillable = [
         'latitude',
-        'longitude'
+        'longitude',
+        'device_id'
     ];
 }
