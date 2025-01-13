@@ -1,69 +1,122 @@
 #include <TinyGPS++.h>
 #include <HardwareSerial.h>
 
-TinyGPSPlus gps;               // Create TinyGPS++ object
-HardwareSerial mySerial(2);
-HardwareSerial mySerial2(1);    // RX 18 TX 19
+TinyGPSPlus gps;
+HardwareSerial mySerial(2);    // GPS Module pada Serial2
+HardwareSerial mySerial2(1);   // GSM Module pada Serial1 (RX 18 TX 19)
+
+unsigned long interv = 20000;   // Interval pengiriman 20 detik
+unsigned long prevTimer = 0;
+
+// Koordinat testing
+double latt = -6.973037111090844;
+double longg = 107.63145534705285;
+
+// URL Production
+const String api_url = "iot.recodex.id"; // Domain sudah benar
+const String api_path = "/api/gps";
 
 void setup() {
-    Serial.begin(115200);      // For debugging (via USB)
-    mySerial.begin(9600, SERIAL_8N1, 16, 17);
-    mySerial2.begin(115200, SERIAL_8N1, 18, 19);  // GPS at 9600 baud, RX=GPIO25, TX=GPIO26
-    delay(1000);
-    Serial.println("Beginning");
+    Serial.begin(115200);
+    mySerial.begin(9600, SERIAL_8N1, 16, 17);  // GPS Module
+    mySerial2.begin(115200, SERIAL_8N1, 18, 19); // GSM Module
+    delay(3000);
 
-  mySerial.println("AT"); 
-  updateSerial();
-  
-  mySerial.println("AT+CMGF=1"); 
-  updateSerial();
-  mySerial.println("AT+CNMI=1,2,0,0,0");
-  updateSerial();
+    Serial.println("Initializing...");
 
-  sendMSG("This is the end...");
+    // Test AT Command
+    mySerial2.println("AT");
+    updateSerial();
+
+    // Setup HTTPS
+    mySerial2.println("AT+HTTPSSL=1"); // Aktifkan HTTPS
+    updateSerial();
+
+    // Setup GPRS
+    setupGPRS();
 }
 
 void loop() {
-    while (mySerial.available() > 0) {
-        char c = mySerial.read();   // Read data from GPS
-        Serial.print(c); 
-        gps.encode(c);             // Feed it to TinyGPS++
-
-        // If a valid location is available, print it
-        if (gps.location.isUpdated()) {
-            Serial.print("Latitude: ");
-            Serial.println(gps.location.lat(), 6); // gps.location.lat() return latitude tipe data (double);
-            Serial.print("Longitude: ");
-            Serial.println(gps.location.lng(), 6); // sama seperti lat, cuma return longtitude (double);
-        }
+    // Kode loop tetap sama
+    unsigned long timer = millis();
+    if(timer - prevTimer >= interv) {
+        prevTimer = timer;
+        latt = latt + 0.0001;
+        longg = longg + 0.0001;
+        sendToAPI(latt, longg);
     }
 
     updateSerial();
-
 }
 
-void updateSerial()
-{
-  delay(500);
-  while (Serial.available()) 
-  {
-    mySerial2.write(Serial.read());
-  }
-  while(mySerial2.available()) 
-  {
-    Serial.write(mySerial2.read());
-  }
+void setupGPRS() {
+    // Reset HTTP
+    mySerial2.println("AT+HTTPTERM");
+    updateSerial();
+    delay(1000);
+
+    // Setup GPRS - Sesuaikan APN dengan provider
+    mySerial2.println("AT+SAPBR=3,1,\"CONTYPE\",\"GPRS\"");
+    updateSerial();
+    mySerial2.println("AT+SAPBR=3,1,\"APN\",\"internet\"");
+    updateSerial();
+    mySerial2.println("AT+SAPBR=1,1");
+    updateSerial();
+    delay(2000);
+
+    // Init HTTP dengan SSL
+    mySerial2.println("AT+HTTPINIT");
+    updateSerial();
+    mySerial2.println("AT+HTTPSSL=1"); // Aktifkan SSL
+    updateSerial();
+    mySerial2.println("AT+HTTPPARA=\"CID\",1");
+    updateSerial();
 }
 
-void sendMSG(String x){
-  mySerial2.println("AT+CMGF=1"); // Configuring TEXT mode
-  updateSerial();
-  mySerial2.println("AT+CMGS=\"+628112405775\"");//change ZZ with country code and xxxxxxxxxxx with phone number to sms
-  updateSerial();
-  mySerial2.print(x); //text content
-  updateSerial();
-  Serial.println();
-  Serial.println("Message Sent");
-  mySerial2.write(26);
+void sendToAPI(float latitude, float longitude) {
+    String jsonData = "{\"latitude\":" + String(latitude, 6) + ",\"longitude\":" + String(longitude, 6) + "}";
+    Serial.println("Sending data: " + jsonData);
+
+    // Set URL dengan https://
+    String url = "https://" + api_url + api_path;
+    mySerial2.println("AT+HTTPPARA=\"URL\",\"" + url + "\"");
+    updateSerial();
+    delay(1000);
+
+    // Content type JSON
+    mySerial2.println("AT+HTTPPARA=\"CONTENT\",\"application/json\"");
+    updateSerial();
+    delay(1000);
+
+    // Send data
+    mySerial2.println("AT+HTTPDATA=" + String(jsonData.length()) + ",10000");
+    updateSerial();
+    delay(1000);
+
+    mySerial2.println(jsonData);
+    updateSerial();
+    delay(5000);
+
+    // POST request
+    mySerial2.println("AT+HTTPACTION=1");
+    updateSerial();
+    delay(10000); // Tunggu lebih lama untuk HTTPS
+
+    // Read response
+    mySerial2.println("AT+HTTPREAD");
+    updateSerial();
+    delay(1000);
+
+    Serial.println("Data sent successfully");
+    delay(1000);
 }
 
+void updateSerial() {
+    delay(1000);
+    while (Serial.available()) {
+        mySerial2.write(Serial.read());
+    }
+    while (mySerial2.available()) {
+        Serial.write(mySerial2.read());
+    }
+}
