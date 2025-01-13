@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\LogViewerController;
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -14,6 +15,10 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/locations', [DashboardController::class, 'getLocations'])->name('locations.get');
+
+    Route::get('/log', [LogViewerController::class, 'index'])->name('logs.index');
+    Route::get('/log/download', [LogViewerController::class, 'download'])->name('logs.download');
+    Route::post('/log/clear', [LogViewerController::class, 'clear'])->name('logs.clear');
 });
 
 require __DIR__.'/auth.php';
