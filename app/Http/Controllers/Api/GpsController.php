@@ -11,23 +11,31 @@ class GpsController extends Controller
     public function store(Request $request)
     {
         try {
-            $validated = $request->validate([
-                'latitude' => 'required|numeric',
-                'longitude' => 'required|numeric'
+            // Tangkap data mentah
+            $content = $request->getContent();
+            \Log::info('Received GPS data: ' . $content); // Untuk debugging
+
+            // Parse JSON
+            $data = json_decode($content, true);
+
+            // Jika parsing JSON gagal, coba parse sebagai raw data
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                \Log::warning('Failed to parse JSON, raw content: ' . $content);
+                return response('OK', 200); // Tetap kirim OK untuk mencegah retry
+            }
+
+            // Simpan ke database
+            $location = GpsLocation::create([
+                'latitude' => $data['latitude'] ?? 0,
+                'longitude' => $data['longitude'] ?? 0
             ]);
 
-            $location = GpsLocation::create($validated);
+            // Kirim respons sederhana
+            return response('OK', 200);
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Location saved successfully',
-                'data' => $location
-            ], 201);
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage()
-            ], 500);
+            \Log::error('GPS data error: ' . $e->getMessage());
+            return response('Error', 500);
         }
     }
 }
