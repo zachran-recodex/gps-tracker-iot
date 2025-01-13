@@ -28,8 +28,8 @@ void setup() {
     mySerial2.println("AT");
     updateSerial();
 
-    // Setup HTTPS
-    mySerial2.println("AT+HTTPSSL=1"); // Aktifkan HTTPS
+    // Nonaktifkan HTTPS
+    mySerial2.println("AT+HTTPSSL=0"); // Nonaktifkan SSL
     updateSerial();
 
     // Setup GPRS
@@ -58,16 +58,16 @@ void setupGPRS() {
     // Setup GPRS - Sesuaikan APN dengan provider
     mySerial2.println("AT+SAPBR=3,1,\"CONTYPE\",\"GPRS\"");
     updateSerial();
-    mySerial2.println("AT+SAPBR=3,1,\"APN\",\"internet\"");
+    mySerial2.println("AT+SAPBR=3,1,\"APN\",\"internet\""); // Ganti "internet" dengan APN provider Anda
     updateSerial();
     mySerial2.println("AT+SAPBR=1,1");
     updateSerial();
     delay(2000);
 
-    // Init HTTP dengan SSL
+    // Init HTTP tanpa SSL
     mySerial2.println("AT+HTTPINIT");
     updateSerial();
-    mySerial2.println("AT+HTTPSSL=1"); // Aktifkan SSL
+    mySerial2.println("AT+HTTPSSL=0"); // Pastikan SSL dinonaktifkan
     updateSerial();
     mySerial2.println("AT+HTTPPARA=\"CID\",1");
     updateSerial();
@@ -77,8 +77,8 @@ void sendToAPI(float latitude, float longitude) {
     String jsonData = "{\"latitude\":" + String(latitude, 6) + ",\"longitude\":" + String(longitude, 6) + "}";
     Serial.println("Sending data: " + jsonData);
 
-    // Set URL dengan https://
-    String url = "https://" + api_url + api_path;
+    // Set URL dengan http://
+    String url = "http://" + api_url + api_path; // Ganti https:// dengan http://
     mySerial2.println("AT+HTTPPARA=\"URL\",\"" + url + "\"");
     updateSerial();
     delay(1000);
@@ -100,7 +100,7 @@ void sendToAPI(float latitude, float longitude) {
     // POST request
     mySerial2.println("AT+HTTPACTION=1");
     updateSerial();
-    delay(10000); // Tunggu lebih lama untuk HTTPS
+    delay(10000); // Tunggu respon dari server
 
     // Read response
     mySerial2.println("AT+HTTPREAD");
