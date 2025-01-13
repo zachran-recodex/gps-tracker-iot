@@ -9,7 +9,7 @@ class DashboardController extends Controller
     public function index()
     {
         $lastLocation = GpsLocation::latest()->first();
-        $locations = GpsLocation::latest()->take(10)->get();
+        $locations = GpsLocation::latest()->paginate(10);
 
         return view('dashboard', compact('lastLocation', 'locations'));
     }

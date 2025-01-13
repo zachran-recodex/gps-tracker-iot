@@ -16,37 +16,46 @@
                     <div class="overflow-x-auto">
                         <table class="w-full">
                             <thead class="bg-gray-50">
-                            <tr>
-                                <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Time</th>
-                                <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Lat</th>
-                                <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Long</th>
-                                @if ($locations->contains(fn($loc) => $loc->device_id))
-                                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Device</th>
-                                @endif
-                            </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-200">
-                            @foreach ($locations as $location)
                                 <tr>
-                                    <td class="px-3 py-2 text-xs text-gray-500">
-                                        {{ $location->created_at->format('H:i:s') }}<br>
-                                        <span class="text-xs text-gray-400">{{ $location->created_at->format('Y-m-d') }}</span>
-                                    </td>
-                                    <td class="px-3 py-2 text-xs text-gray-500">
-                                        {{ number_format($location->latitude, 6) }}
-                                    </td>
-                                    <td class="px-3 py-2 text-xs text-gray-500">
-                                        {{ number_format($location->longitude, 6) }}
-                                    </td>
-                                    @if ($location->device_id)
-                                        <td class="px-3 py-2 text-xs text-gray-500">
-                                            {{ $location->device_id }}
-                                        </td>
+                                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Time
+                                    </th>
+                                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Lat</th>
+                                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Long
+                                    </th>
+                                    @if ($locations->contains(fn($loc) => $loc->device_id))
+                                        <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                                            Device</th>
                                     @endif
                                 </tr>
-                            @endforeach
+                            </thead>
+                            <tbody class="divide-y divide-gray-200">
+                                @foreach ($locations as $location)
+                                    <tr>
+                                        <td class="px-3 py-2 text-xs text-gray-500">
+                                            {{ $location->created_at->format('H:i:s') }}<br>
+                                            <span
+                                                class="text-xs text-gray-400">{{ $location->created_at->format('Y-m-d') }}</span>
+                                        </td>
+                                        <td class="px-3 py-2 text-xs text-gray-500">
+                                            {{ number_format($location->latitude, 6) }}
+                                        </td>
+                                        <td class="px-3 py-2 text-xs text-gray-500">
+                                            {{ number_format($location->longitude, 6) }}
+                                        </td>
+                                        @if ($location->device_id)
+                                            <td class="px-3 py-2 text-xs text-gray-500">
+                                                {{ $location->device_id }}
+                                            </td>
+                                        @endif
+                                    </tr>
+                                @endforeach
                             </tbody>
                         </table>
+                    </div>
+
+                    <!-- Pagination Links -->
+                    <div class="mt-4">
+                        {{ $locations->links() }}
                     </div>
                 </div>
             </div>
