@@ -12,17 +12,30 @@ class DashboardController extends Controller
         // Hapus data lama jika jumlah data melebihi 20
         $this->deleteOldLocations();
 
-        // Ambil 5 data terbaru
-        $lastLocation = GpsLocation::latest()->first();
-        $locations = GpsLocation::latest()->take(5)->get();
+        // Ambil 5 data terbaru yang tidak memiliki latitude dan longitude 0
+        $lastLocation = GpsLocation::where('latitude', '!=', 0)
+            ->where('longitude', '!=', 0)
+            ->latest()
+            ->first();
+
+        $locations = GpsLocation::where('latitude', '!=', 0)
+            ->where('longitude', '!=', 0)
+            ->latest()
+            ->take(5)
+            ->get();
 
         return view('dashboard', compact('lastLocation', 'locations'));
     }
 
     public function getLocations()
     {
-        // Ambil 5 data terbaru
-        $locations = GpsLocation::latest()->take(5)->get();
+        // Ambil 5 data terbaru yang tidak memiliki latitude dan longitude 0
+        $locations = GpsLocation::where('latitude', '!=', 0)
+            ->where('longitude', '!=', 0)
+            ->latest()
+            ->take(5)
+            ->get();
+
         return response()->json($locations);
     }
 

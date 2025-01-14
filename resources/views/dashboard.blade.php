@@ -157,6 +157,11 @@
             audioAlert = new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg');
             audioAlert.loop = true;
             audioAlert.play().catch(e => console.log('Audio playback failed:', e));
+        @else
+            if (audioAlert) {
+                audioAlert.pause();
+                audioAlert.currentTime = 0;
+            }
         @endif
     </script>
 </x-app-layout>
