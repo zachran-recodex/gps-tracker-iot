@@ -9,6 +9,11 @@ class GpsLocation extends Model
     protected $fillable = [
         'latitude',
         'longitude',
+        'emergency',
         'device_id'
+    ];
+
+    protected $casts = [
+        'emergency' => 'boolean'
     ];
 }
