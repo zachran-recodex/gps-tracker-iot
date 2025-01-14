@@ -16,9 +16,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/locations', [DashboardController::class, 'getLocations'])->name('locations.get');
 
-    Route::get('/log', [LogViewerController::class, 'index'])->name('logs.index');
-    Route::get('/log/download', [LogViewerController::class, 'download'])->name('logs.download');
-    Route::post('/log/clear', [LogViewerController::class, 'clear'])->name('logs.clear');
+    Route::get('/view-log', [LogViewerController::class, 'index'])->name('logs.index');
+    Route::get('/view-log/download', [LogViewerController::class, 'download'])->name('logs.download');
+    Route::post('/view-log/clear', [LogViewerController::class, 'clear'])->name('logs.clear');
 });
 
 require __DIR__.'/auth.php';
