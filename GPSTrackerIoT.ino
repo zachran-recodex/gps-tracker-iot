@@ -1,5 +1,3 @@
-// Most recent codes
-
 #include <TinyGPS++.h>
 #include <HardwareSerial.h>
 #include <ezButton.h>
@@ -11,34 +9,27 @@ HardwareSerial mySerial2(1);   // GSM Module pada Serial1 (RX 18 TX 19)
 unsigned long interv = 20000;   // Interval pengiriman 20 detik
 unsigned long prevTimer = 0;
 
-bool emergencyState = false;
-int buzzer = 21;
+bool emergencyState = false;    // Status keadaan darurat
+int buzzer = 21;                // Pin buzzer
+ezButton button(22);            // Tombol emergency pada pin 22
 
-ezButton button(22);
+double lat;                     // Variabel untuk menyimpan latitude
+double lng;                     // Variabel untuk menyimpan longitude
 
-double lat;
-double lng;
-
-
-
-// Koordinat testing
-//double latt = -6.973037111090844;
-//double longg = 107.63145534705285;
-
-// URL testing
-const String api_url = "iot.recodex.id"; // Domain nanti diubah
-const String api_path = "/api/gps";
+// URL Server
+const String api_url = "smartracker.web.id"; // Domain server
+const String api_path = "/api/gps";      // Endpoint API
 
 void setup() {
-    Serial.begin(115200);
-    mySerial.begin(9600, SERIAL_8N1, 16, 17);  // GPS Module
-    mySerial2.begin(115200, SERIAL_8N1, 18, 19); // GSM Module
-    pinMode(buzzer, OUTPUT); // output pin buzzer
-    delay(3000);
-
+    Serial.begin(115200);                // Inisialisasi Serial Monitor
+    mySerial.begin(9600, SERIAL_8N1, 16, 17);  // Inisialisasi GPS Module
+    mySerial2.begin(115200, SERIAL_8N1, 18, 19); // Inisialisasi GSM Module
+    pinMode(buzzer, OUTPUT);             // Set pin buzzer sebagai output
+    delay(3000);                         // Jeda awal
 
     Serial.println("Initializing...");
 
+    // Reset modul GSM
     mySerial2.println("AT&F");
     updateSerial();
 
@@ -53,56 +44,49 @@ void setup() {
     // Setup GPRS
     setupGPRS();
 
-    Serial.println("In da loop"); // kode debugging, ignore
+    Serial.println("System Ready!"); // Pesan bahwa sistem siap
 }
 
 void loop() {
-    button.loop();
-    // Kode loop tetap sama
-    unsigned long timer = millis();
+    button.loop(); // Update status tombol
 
+    // Baca data GPS
     while (mySerial.available() > 0) {
-        char c = mySerial.read();   // Read data from GPS
-        Serial.print(c);
-        gps.encode(c);             // Feed it to TinyGPS++
+        char c = mySerial.read();   // Baca data dari GPS
+        Serial.print(c);            // Tampilkan data di Serial Monitor
+        gps.encode(c);              // Decode data GPS menggunakan TinyGPS++
 
-        // If a valid location is available, print it
+        // Jika data lokasi valid, simpan latitude dan longitude
         if (gps.location.isUpdated()) {
-           lat = gps.location.lat();
-           lng = gps.location.lng();
+            lat = gps.location.lat();
+            lng = gps.location.lng();
             Serial.print("Latitude: ");
-            Serial.println(lat, 6); // gps.location.lat() return latitude tipe data (double);
+            Serial.println(lat, 6); // Tampilkan latitude dengan 6 digit desimal
             Serial.print("Longitude: ");
-            Serial.println(lng, 6); // sama seperti lat, cuma return longtitude (double);
-
-                        // Send to API
-
+            Serial.println(lng, 6); // Tampilkan longitude dengan 6 digit desimal
         }
     }
 
-    if(timer - prevTimer >= interv) {
+    // Kirim data ke server setiap interval waktu
+    unsigned long timer = millis();
+    if (timer - prevTimer >= interv) {
         prevTimer = timer;
-
-        /*
-        latt = latt + 0.0001;
-        longg = longg + 0.0001;
-        */
-        sendToAPI(lat, lng);
+        sendToAPI(lat, lng); // Kirim data GPS ke server
     }
 
-
-    // block kode ini buat emergency button!
-
-    if(button.isPressed()){
-      emergencyState = !emergencyState;
+    // Logika tombol emergency
+    if (button.isPressed()) {
+        emergencyState = !emergencyState; // Toggle status emergency
+        if (!emergencyState) {
+            noTone(buzzer); // Matikan buzzer jika emergency dinonaktifkan
+        }
     }
-    if(emergencyState){
-      tone(buzzer, 700);
-      Serial.println("in da buzz"); // kode debugging, ignore.
-      } else {
-        noTone(buzzer);
-      }
 
+    // Aktifkan buzzer jika dalam keadaan darurat
+    if (emergencyState) {
+        tone(buzzer, 700); // Bunyikan buzzer dengan frekuensi 700 Hz
+        Serial.println("Emergency Mode Active!"); // Debugging
+    }
 }
 
 void setupGPRS() {
@@ -114,7 +98,7 @@ void setupGPRS() {
     // Setup GPRS - Sesuaikan APN dengan provider
     mySerial2.println("AT+SAPBR=3,1,\"CONTYPE\",\"GPRS\"");
     updateSerial();
-    mySerial2.println("AT+SAPBR=3,1,\"APN\",\"telkomsel\""); // Ganti "internet" dengan APN provider Anda
+    mySerial2.println("AT+SAPBR=3,1,\"APN\",\"telkomsel\""); // Ganti dengan APN provider Anda
     updateSerial();
     mySerial2.println("AT+SAPBR=1,1");
     updateSerial();
@@ -130,19 +114,25 @@ void setupGPRS() {
 }
 
 void sendToAPI(float latitude, float longitude) {
+    // Cek jika latitude dan longitude bernilai 0 (invalid)
+    if (latitude == 0 || longitude == 0) {
+        Serial.println("Invalid GPS data. Skipping send.");
+        return;
+    }
+
+    // Format data JSON
     String jsonData = "{\"latitude\":" + String(latitude, 6) +
                      ",\"longitude\":" + String(longitude, 6) +
                      ",\"emergency\":" + String(emergencyState ? "true" : "false") + "}";
     Serial.println("Sending data: " + jsonData);
 
-    // cek apakah terkoneksi ke GPRS, kalau iya dia return IP kita
+    // Cek koneksi GPRS
     mySerial2.println("AT+SAPBR=2,1");
     updateSerial();
 
-    // Check Signal Quality, kalo bagus valuenya diatas 10
+    // Cek kualitas sinyal
     mySerial2.println("AT+CSQ");
     updateSerial();
-
 
     // Set URL dengan http://
     String url = "http://" + api_url + api_path; // Ganti https:// dengan http://
@@ -150,40 +140,39 @@ void sendToAPI(float latitude, float longitude) {
     updateSerial();
     delay(500);
 
-    // Content type JSON
+    // Set content type JSON
     mySerial2.println("AT+HTTPPARA=\"CONTENT\",\"application/json\"");
     updateSerial();
-    delay(500); // semua yang 500 tadinya 1000
+    delay(500);
 
-    // Send data
+    // Kirim data
     mySerial2.println("AT+HTTPDATA=" + String(jsonData.length()) + ",10000");
     updateSerial();
     delay(500);
 
     mySerial2.println(jsonData);
     updateSerial();
-    delay(3000); // ini tadinya 5000 jadi 3000
+    delay(3000);
 
     // POST request
     mySerial2.println("AT+HTTPACTION=1");
     updateSerial();
-    delay(3000); // Tunggu respon dari server / ini tadinya 10000 jadi 3000 biar cepet aja, kalo error ganti lagi nanti.
+    delay(3000);
 
-    // Read response
+    // Baca respon dari server
     mySerial2.println("AT+HTTPREAD");
     updateSerial();
     delay(1000);
 
     Serial.println("Data sent successfully");
-
 }
 
 void updateSerial() {
     delay(500);
     while (Serial.available()) {
-        mySerial2.write(Serial.read());
+        mySerial2.write(Serial.read()); // Kirim data dari Serial Monitor ke GSM Module
     }
     while (mySerial2.available()) {
-        Serial.write(mySerial2.read());
+        Serial.write(mySerial2.read()); // Kirim data dari GSM Module ke Serial Monitor
     }
 }
