@@ -1,6 +1,11 @@
 <x-app-layout>
     <div class="pt-16 pb-16 bg-gray-100 min-h-screen overflow-x-hidden">
         <div class="max-w-sm mx-auto px-2">
+            <!-- Display Logged-in User's Name -->
+            <div class="bg-white shadow-sm rounded-lg mb-4 relative text-center py-4">
+                <p class="text-sm text-gray-600">Welcome, <span class="font-semibold">{{ Auth::user()->name }}</span>!</p>
+            </div>
+
             <!-- Emergency Alert -->
             @if ($lastLocation && $lastLocation->emergency)
                 <div
