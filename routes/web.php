@@ -5,6 +5,12 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\LogViewerController;
 
+Route::domain('ta.' . env('APP_URL'))->group(function () {
+    Route::get('/', function () {
+        return 'Ini adalah subdomain ta.smartracker.web.id';
+    });
+});
+
 Route::get('/', function () {
     return redirect()->route('login');
 });
@@ -19,13 +25,6 @@ Route::middleware('auth')->group(function () {
     Route::get('/view-log', [LogViewerController::class, 'index'])->name('logs.index');
     Route::get('/view-log/download', [LogViewerController::class, 'download'])->name('logs.download');
     Route::post('/view-log/clear', [LogViewerController::class, 'clear'])->name('logs.clear');
-});
-
-Route::domain('ta.' . env('APP_URL'))->group(function () {
-    Route::get('/', function () {
-        return 'Ini adalah subdomain ta.smartracker.web.id';
-    });
-
 });
 
 require __DIR__.'/auth.php';
