@@ -21,4 +21,11 @@ Route::middleware('auth')->group(function () {
     Route::post('/view-log/clear', [LogViewerController::class, 'clear'])->name('logs.clear');
 });
 
+Route::domain('ta.' . env('APP_URL'))->group(function () {
+    Route::get('/', function () {
+        return 'Ini adalah subdomain ta.smartracker.web.id';
+    });
+
+});
+
 require __DIR__.'/auth.php';
